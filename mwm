@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# MyWM Executável Avançado - mwm
+# Versão evoluída: verifica dependências, suporte a opções e chama main.py
+
+# Caminho para o diretório do MyWM
+MYWM_DIR="$HOME/mywm"
+MAIN_PY="$MYWM_DIR/main.py"
+
+# =======================
+# Funções auxiliares
+# =======================
+check_dependencies() {
+    local deps=("python3" "xprop" "xrandr")
+    for dep in "${deps[@]}"; do
+        if ! command -v $dep &>/dev/null; then
+            echo "Dependência ausente: $dep. Por favor instale antes de continuar."
+            exit 1
+        fi
+    done
+}
+
+show_help() {
+    echo "Uso: mwm [OPÇÃO]"
+    echo "Opções disponíveis:"
+    echo "  --restart       Reinicia o MyWM"
+    echo "  --reload-config Recarrega o config.py"
+    echo "  --help          Mostra esta ajuda"
+    exit 0
+}
+
+restart_wm() {
+    pkill -f main.py
+    echo "Reiniciando MyWM..."
+    exec "$0"
+}
+
+reload_config() {
+    echo "Recarregando configuração..."
+    python3 -c "from config import config; print('Config carregada com sucesso')"
+    exit 0
+}
+
+# =======================
+# Verificação de dependências
+# =======================
+check_dependencies
+
+# =======================
+# Processa opções de linha de comando
+# =======================
+case "$1" in
+    --help)
+        show_help
+        ;;
+    --restart)
+        restart_wm
+        ;;
+    --reload-config)
+        reload_config
+        ;;
+esac
+
+# =======================
+# Executa o WM
+# =======================
+if [ ! -f "$MAIN_PY" ]; then
+    echo "Erro: main.py não encontrado em $MAIN_PY"
+    exit 1
+fi
+
+echo "Iniciando MyWM 1.0+..."
+exec python3 "$MAIN_PY" "$@"
